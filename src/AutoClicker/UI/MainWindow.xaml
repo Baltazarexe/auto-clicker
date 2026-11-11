@@ -1,0 +1,118 @@
+<Window x:Class="AutoClicker.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Auto Clicker"
+        Icon="pack://application:,,,/Assets/app.ico"
+        Width="340"
+        SizeToContent="Height"
+        ResizeMode="CanMinimize"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource WindowBg}"
+        Foreground="{StaticResource Text}"
+        FontFamily="{StaticResource UiFont}"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display">
+
+    <StackPanel Margin="22,20,22,22">
+
+        <!-- Title + real CPS indicator -->
+        <Grid Margin="0,0,0,18">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Mouse: left button and rays light up green while clicking -->
+                <Viewbox Width="24" Height="24" Margin="0,0,10,0" VerticalAlignment="Center">
+                    <Canvas Width="24" Height="24">
+                        <Path Data="M12,4.5 A4.5,4.5 0 0 0 7.5,9 V11 H12 Z">
+                            <Path.Style>
+                                <Style TargetType="Path">
+                                    <Setter Property="Fill" Value="{StaticResource TextMuted}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                            <Setter Property="Fill" Value="{StaticResource Running}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Path.Style>
+                        </Path>
+                        <Rectangle Canvas.Left="7.5" Canvas.Top="4.5" Width="9" Height="15" RadiusX="4.5" RadiusY="4.5"
+                                   Stroke="{StaticResource Text}" StrokeThickness="1.4" />
+                        <Line X1="7.5" Y1="11" X2="16.5" Y2="11" Stroke="{StaticResource Text}" StrokeThickness="1.1" />
+                        <Line X1="12" Y1="4.5" X2="12" Y2="11" Stroke="{StaticResource Text}" StrokeThickness="1.1" />
+                        <Path Data="M5.6,5.6 L3.8,3.8 M4.6,9 H2.2 M8.6,3.6 V1.4"
+                              Stroke="{StaticResource Running}" StrokeThickness="1.4"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                            <Path.Style>
+                                <Style TargetType="Path">
+                                    <Setter Property="Visibility" Value="Hidden" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Path.Style>
+                        </Path>
+                    </Canvas>
+                </Viewbox>
+                <TextBlock Text="Auto Clicker" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"
+                        Visibility="{Binding IsRunning, Converter={StaticResource BoolToVis}}">
+                <Ellipse Width="7" Height="7" Fill="{StaticResource Running}" Margin="0,0,6,0" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding RealCpsLabel}" FontSize="12" Foreground="{StaticResource Running}" VerticalAlignment="Center" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Speed -->
+        <TextBlock Style="{StaticResource SectionLabel}" Text="SPEED" />
+        <Grid Margin="0,0,0,18">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="CpsBox" Style="{StaticResource Field}"
+                     Text="{Binding CpsText, UpdateSourceTrigger=PropertyChanged}"
+                     LostKeyboardFocus="CpsBox_LostKeyboardFocus" KeyDown="CpsBox_KeyDown"
+                     PreviewTextInput="CpsBox_PreviewTextInput"
+                     AutomationProperties.Name="Clicks per second" />
+            <TextBlock Grid.Column="1" Text="CPS" FontSize="13" Foreground="{StaticResource TextMuted}"
+                       VerticalAlignment="Center" Margin="10,0,0,0" />
+        </Grid>
+
+        <!-- Mouse button -->
+        <TextBlock Style="{StaticResource SectionLabel}" Text="BUTTON" />
+        <Border Style="{StaticResource SegmentHost}" Margin="0,0,0,18">
+            <UniformGrid Rows="1">
+                <RadioButton Style="{StaticResource SegmentItem}" GroupName="Button" Content="Left"
+                             IsChecked="{Binding Button, Converter={StaticResource EnumEquals}, ConverterParameter=Left}" />
+                <RadioButton Style="{StaticResource SegmentItem}" GroupName="Button" Content="Right"
+                             IsChecked="{Binding Button, Converter={StaticResource EnumEquals}, ConverterParameter=Right}" />
+                <RadioButton Style="{StaticResource SegmentItem}" GroupName="Button" Content="Middle"
+                             IsChecked="{Binding Button, Converter={StaticResource EnumEquals}, ConverterParameter=Middle}" />
+            </UniformGrid>
+        </Border>
+
+        <!-- Mode -->
+        <TextBlock Style="{StaticResource SectionLabel}" Text="MODE" />
+        <Border Style="{StaticResource SegmentHost}" Margin="0,0,0,18">
+            <UniformGrid Rows="1">
+                <RadioButton Style="{StaticResource SegmentItem}" GroupName="Mode" Content="Toggle"
+                             IsChecked="{Binding Mode, Converter={StaticResource EnumEquals}, ConverterParameter=Toggle}" />
+                <RadioButton Style="{StaticResource SegmentItem}" GroupName="Mode" Content="Hold"
+                             IsChecked="{Binding Mode, Converter={StaticResource EnumEquals}, ConverterParameter=Hold}" />
+            </UniformGrid>
+        </Border>
+
+        <!-- Hotkey -->
+        <Grid Margin="0,0,0,22">
+            <TextBlock Text="Hotkey" FontSize="13" VerticalAlignment="Center" />
+            <Button Style="{StaticResource Chip}" HorizontalAlignment="Right"
+                    Content="{Binding HotkeyLabel}" Command="{Binding CaptureHotkeyCommand}"
+                    ToolTip="Click, then press a key or a mouse side button. Esc cancels."
+                    AutomationProperties.Name="Set hotkey" />
+        </Grid>
+
+        <!-- Start / Stop -->
+        <Button Style="{StaticResource Primary}" Content="{Binding PrimaryLabel}"
+                Command="{Binding PrimaryCommand}" IsEnabled="{Binding PrimaryEnabled}" />
+    </StackPanel>
+</Window>
